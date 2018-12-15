@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\TimingManager">
+      <UniqueIdentifier>{9296ad67-8a7b-4281-821f-5d7a27f229cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TimingManager">
+      <UniqueIdentifier>{910e83dc-586a-4e98-8a64-bf1246c16e23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GUIManager">
+      <UniqueIdentifier>{168dea23-6f9c-4d10-aec6-3a80e17b2933}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GUIManager">
+      <UniqueIdentifier>{51810bcc-b761-4f5f-afd2-28cc1790ec42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Logging">
+      <UniqueIdentifier>{09cc5d48-f9f7-4d1d-baf5-0736714d3203}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Logging">
+      <UniqueIdentifier>{06c81b1d-2c15-43f8-aee0-3ddd14e1748f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utilities">
+      <UniqueIdentifier>{2e56ae81-1d8e-4950-b406-bb3e9158bf8b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TimingManager.h">
+      <Filter>Header Files\TimingManager</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIManager.h">
+      <Filter>Header Files\GUIManager</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleManager.h">
+      <Filter>Header Files\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TimingManager.cpp">
+      <Filter>Source Files\TimingManager</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIManager.cpp">
+      <Filter>Source Files\GUIManager</Filter>
+    </ClCompile>
+    <ClCompile Include="ConsoleManager.cpp">
+      <Filter>Source Files\Logging</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
