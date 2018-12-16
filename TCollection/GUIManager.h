@@ -6,7 +6,7 @@
 #include <math.h>
 #include <SFML/Graphics.hpp>
 
-enum TextLocation
+enum class TextLocation
 {
 	Center,
 	TopLeft,
@@ -15,6 +15,12 @@ enum TextLocation
 	Right,
 	BottomLeft,
 	BottomRight
+};
+
+enum class LocationAxis
+{
+	TopLeft,
+	Center
 };
 
 class Button;
@@ -37,11 +43,13 @@ public:
 	bool Clicked;
 	bool Held;
 	TextLocation TextLocation;
+	LocationAxis Axis;
 
 	Button* SetBackgroundColor(int r, int g, int b);
 	Button* SetHighlightColor(int r, int g, int b);
 	Button* SetTextColor(int r, int g, int b);
 	Button* SetText(std::string text);
+	Button* SetLocationAxis(LocationAxis axis);
 
 	Button(float x, float y, float width, float height);
 	~Button();
@@ -64,6 +72,10 @@ public:
 	sf::Vector2f Size;
 	sf::Vector2f Scale;
 	float Rotation;
+
+	LocationAxis Axis;
+
+	Image* SetLocationAxis(LocationAxis axis);
 
 	Image(std::string image, float x, float y, float width, float height);
 	~Image();

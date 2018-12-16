@@ -23,6 +23,7 @@ Button::Button(float x, float y, float width, float height)
 	HeldHandler = NULL;
 	RightClickHandler = NULL;
 	Held = false;
+	Axis = LocationAxis::Center;
 }
 
 Button* Button::SetBackgroundColor(int r, int g, int b)
@@ -64,6 +65,12 @@ Button* Button::SetTextColor(int r, int g, int b)
 	return this;
 }
 
+Button* Button::SetLocationAxis(LocationAxis axis)
+{
+	Axis = axis;
+	return this;
+}
+
 Button::~Button()
 {
 
@@ -78,11 +85,18 @@ Image::Image(std::string image, float x, float y, float width, float height)
 	Size = sf::Vector2f(width, height);
 	Scale = sf::Vector2f(1.0f, 1.0f);
 	Rotation = 0;
+	Axis = LocationAxis::Center;
 }
 
 Image::~Image()
 {
 
+}
+
+Image* Image::SetLocationAxis(LocationAxis axis)
+{
+	Axis = axis;
+	return this;
 }
 
 Window::Window(std::string name, unsigned int width, unsigned int height)
@@ -288,14 +302,22 @@ bool Window::Render()
 						if (it->second->HeldHandler != NULL)
 							it->second->HeldHandler(this, it->second);
 					}
-					it->second->Shape.setPosition(it->second->Position);
+					sf::Vector2f ff = it->second->Position;
+					if (it->second->Axis == LocationAxis::Center)
+					{
+						ff.x -= it->second->Size.x / 2;
+						ff.y -= it->second->Size.y / 2;
+					}
+					it->second->Shape.setPosition(ff);
 					it->second->Shape.setSize(it->second->Size);
 					if (it->second->TextLocation == TextLocation::Center)
 					{
 						sf::Vector2f pos = it->second->Position;
-						pos.x += it->second->Size.x / 2;
-						//pos.x -= it->second->Text.getLocalBounds().width / 2;
-						pos.y += it->second->Size.y / 2;
+						if (it->second->Axis == LocationAxis::TopLeft)
+						{
+							pos.x -= it->second->Size.x / 2;
+							pos.y -= it->second->Size.y / 2;
+						}
 						pos.y -= it->second->Text.getLocalBounds().height / 4;
 						it->second->Text.setOrigin(roundf(it->second->Text.getLocalBounds().width / 2), roundf(it->second->Text.getLocalBounds().height / 2));
 						it->second->Text.setPosition(roundf(pos.x), roundf(pos.y));
@@ -317,7 +339,13 @@ bool Window::Render()
 			{
 				sf::Vector2u curSize = it2->second->Texture.getSize();
 				it2->second->Sprite.setScale(it2->second->Size.x / curSize.x, it2->second->Size.y / curSize.y);
-				it2->second->Sprite.setPosition(it2->second->Position);
+				sf::Vector2f pos = it2->second->Position;
+				if (it2->second->Axis == LocationAxis::Center)
+				{
+					pos.x -= it2->second->Size.x / 2;
+					pos.y -= it2->second->Size.y / 2;
+				}
+				it2->second->Sprite.setPosition(pos);
 				it2->second->Sprite.setRotation(it2->second->Rotation);
 				MainWindow.draw(it2->second->Sprite);
 			}
