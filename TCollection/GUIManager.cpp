@@ -1,6 +1,6 @@
 #include "GUIManager.h"
 
-Button::Button(float x, float y, float width, float height)
+Button::Button(float x, float y, float width, float height, Window* parent, std::string id)
 {
 	Position = sf::Vector2f(x, y);
 	Size = sf::Vector2f(width, height);
@@ -24,6 +24,10 @@ Button::Button(float x, float y, float width, float height)
 	RightClickHandler = NULL;
 	Held = false;
 	Axis = LocationAxis::Center;
+	ButtonShape = ButtonEdgeShape::SquareEdge;
+	ZIndex = 0;
+	ParentWindow = parent;
+	Id = id;
 }
 
 Button* Button::SetBackgroundColor(int r, int g, int b)
@@ -35,6 +39,12 @@ Button* Button::SetBackgroundColor(int r, int g, int b)
 Button* Button::SetText(std::string text)
 {
 	Text.setString(text);
+	return this;
+}
+
+Button* Button::SetButtonShape(ButtonEdgeShape shape)
+{
+	ButtonShape = shape;
 	return this;
 }
 
@@ -71,11 +81,140 @@ Button* Button::SetLocationAxis(LocationAxis axis)
 	return this;
 }
 
+Button* Button::SetZIndex(int index)
+{
+	ZIndex = index;
+	std::vector<std::string>::iterator position = std::find(ParentWindow->DrawOrder.begin(), ParentWindow->DrawOrder.end(), Id);
+	if (position != ParentWindow->DrawOrder.end())
+		ParentWindow->DrawOrder.erase(position);
+
+	if (ParentWindow->DrawOrder.size() == 0)
+	{
+		ParentWindow->DrawOrder.push_back(Id);
+		return this;
+	}
+	else
+	{
+		for (unsigned int i = 0; i < ParentWindow->DrawOrder.size(); i++)
+		{
+			if (i == ParentWindow->DrawOrder.size() - 1)
+			{
+				Button* btn = dynamic_cast<Button*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i]]);
+				if (btn != nullptr)
+				{
+					if (btn->ZIndex > index)
+					{
+						ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin(), Id);
+						return this;
+					}
+					else
+					{
+						ParentWindow->DrawOrder.push_back(Id);
+						return this;
+					}
+				}
+				else
+				{
+					Image* img = dynamic_cast<Image*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i]]);
+					if (img != nullptr)
+					{
+						if (img->ZIndex > index)
+						{
+							ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin(), Id);
+							return this;
+						}
+						else
+						{
+							ParentWindow->DrawOrder.push_back(Id);
+							return this;
+						}
+					}
+				}
+				return this;
+			}
+			else
+			{
+				Button* btn = dynamic_cast<Button*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i]]);
+				if (btn != nullptr)
+				{
+					if (btn->ZIndex <= index)
+					{
+						Button* btn2 = dynamic_cast<Button*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i + 1]]);
+						if (btn2 != nullptr)
+						{
+							if (btn2->ZIndex > index)
+							{
+								ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+								return this;
+							}
+						}
+						else
+						{
+							Image* img2 = dynamic_cast<Image*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i + 1]]);
+							if (img2 != nullptr)
+							{
+								if (img2->ZIndex > index)
+								{
+									ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+									return this;
+								}
+							}
+						}
+					}
+					else
+					{
+						ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+						return this;
+					}
+				}
+				else
+				{
+					Image* img = dynamic_cast<Image*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i]]);
+					if (img != nullptr)
+					{
+						if (img->ZIndex <= index)
+						{
+							Button* btn2 = dynamic_cast<Button*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i + 1]]);
+							if (btn2 != nullptr)
+							{
+								if (btn2->ZIndex > index)
+								{
+									ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+									return this;
+								}
+							}
+							else
+							{
+								Image* img2 = dynamic_cast<Image*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i + 1]]);
+								if (img2 != nullptr)
+								{
+									if (img2->ZIndex > index)
+									{
+										ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+										return this;
+									}
+								}
+							}
+						}
+						else
+						{
+							ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+							return this;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return this;
+}
+
 Button::~Button()
 {
 
 }
-Image::Image(std::string image, float x, float y, float width, float height)
+Image::Image(std::string image, float x, float y, float width, float height, Window* parent, std::string id)
 {
 	std::string Res = "Resources/Images/";
 	Texture.loadFromFile(Res + image);
@@ -86,6 +225,9 @@ Image::Image(std::string image, float x, float y, float width, float height)
 	Scale = sf::Vector2f(1.0f, 1.0f);
 	Rotation = 0;
 	Axis = LocationAxis::Center;
+	ZIndex = 0;
+	Id = id;
+	ParentWindow = parent;
 }
 
 Image::~Image()
@@ -99,11 +241,118 @@ Image* Image::SetLocationAxis(LocationAxis axis)
 	return this;
 }
 
+Image* Image::SetZIndex(int index)
+{
+	ZIndex = index;
+	
+	std::vector<std::string>::iterator position = std::find(ParentWindow->DrawOrder.begin(), ParentWindow->DrawOrder.end(), Id);
+	if (position != ParentWindow->DrawOrder.end())
+		ParentWindow->DrawOrder.erase(position);
+
+	if (ParentWindow->DrawOrder.size() == 0)
+	{
+		ParentWindow->DrawOrder.push_back(Id);
+		return this;
+	}
+	else
+	{
+		for (unsigned int i = 0; i < ParentWindow->DrawOrder.size(); i++)
+		{
+			if (i == ParentWindow->DrawOrder.size() - 1)
+			{
+				ParentWindow->DrawOrder.push_back(Id);
+				return this;
+			}
+			else
+			{
+				Button* btn = dynamic_cast<Button*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i]]);
+				if (btn != nullptr)
+				{
+					if (btn->ZIndex <= index)
+					{
+						Button* btn2 = dynamic_cast<Button*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i + 1]]);
+						if (btn2 != nullptr)
+						{
+							if (btn2->ZIndex > index)
+							{
+								ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+								return this;
+							}
+						}
+						else
+						{
+							Image* img2 = dynamic_cast<Image*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i + 1]]);
+							if (img2 != nullptr)
+							{
+								if (img2->ZIndex > index)
+								{
+									ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+									return this;
+								}
+							}
+						}
+					}
+					else
+					{
+						ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+						return this;
+					}
+				}
+				else
+				{
+					Image* img = dynamic_cast<Image*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i]]);
+					if (img != nullptr)
+					{
+						if (img->ZIndex <= index)
+						{
+							Button* btn2 = dynamic_cast<Button*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i + 1]]);
+							if (btn2 != nullptr)
+							{
+								if (btn2->ZIndex > index)
+								{
+									ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+									return this;
+								}
+							}
+							else
+							{
+								Image* img2 = dynamic_cast<Image*>(ParentWindow->ObjectMap[ParentWindow->DrawOrder[i + 1]]);
+								if (img2 != nullptr)
+								{
+									if (img2->ZIndex > index)
+									{
+										ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+										return this;
+									}
+								}
+							}
+						}
+						else
+						{
+							ParentWindow->DrawOrder.insert(ParentWindow->DrawOrder.begin() + i, Id);
+							return this;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return this;
+}
+
+Object::~Object()
+{
+
+}
+
 Window::Window(std::string name, unsigned int width, unsigned int height)
 {
+	sf::ContextSettings settings;
+	settings.antialiasingLevel = 16;
 	Position = sf::Vector2i(0, 0);
 	Size = sf::Vector2u(width, height);
-	MainWindow.create(sf::VideoMode(width, height), name, sf::Style::None);
+	MainWindow.create(sf::VideoMode(width, height), name, sf::Style::None, settings);
 	MainWindow.setPosition(Position);
 }
 
@@ -131,6 +380,13 @@ bool Window::Render()
 			{
 				MainWindow.close();
 			}
+		}
+		/*while (MainWindow.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+			{
+				MainWindow.close();
+			}
 			else if (event.type == sf::Event::Resized)
 			{
 				MainWindow.setView(sf::View(sf::FloatRect(0, 0, (float)event.size.width, (float)event.size.height)));
@@ -144,14 +400,34 @@ bool Window::Render()
 					{
 						if (it->second->Enabled)
 						{
-							if (it->second->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))))
+							if (it->second->ButtonShape == ButtonEdgeShape::SquareEdge)
 							{
-								std::cout << "Hovered!" << std::endl;
-								it->second->Highlighted = true;
+								if (it->second->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))))
+								{
+									std::cout << "Hovered!" << std::endl;
+									it->second->Highlighted = true;
+								}
+								else
+								{
+									it->second->Highlighted = false;
+								}
 							}
-							else
+							else if (it->second->ButtonShape == ButtonEdgeShape::RoundEdge)
 							{
-								it->second->Highlighted = false;
+								if (it->second->Rect1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))) ||
+									it->second->Rect2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))) ||
+									it->second->Cir1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))) ||
+									it->second->Cir2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))) ||
+									it->second->Cir3.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))) || 
+									it->second->Cir4.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))))
+								{
+									std::cout << "Hovered!" << std::endl;
+									it->second->Highlighted = true;
+								}
+								else
+								{
+									it->second->Highlighted = false;
+								}
 							}
 						}
 					}
@@ -172,18 +448,48 @@ bool Window::Render()
 						{
 							if (it->second->Enabled)
 							{
-								if (it->second->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+								if (it->second->ButtonShape == ButtonEdgeShape::SquareEdge)
 								{
-									std::cout << "Clicked!" << std::endl;
-									if (it->second->ClickHandler != NULL)
-										it->second->ClickHandler(this, it->second);
-									it->second->Clicked = false;
-									it->second->Held = false;
+									if (it->second->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+									{
+										if (it->second->Held)
+										{
+											std::cout << "Clicked!" << std::endl;
+											if (it->second->ClickHandler != NULL)
+												it->second->ClickHandler(this, it->second);
+										}
+										it->second->Clicked = false;
+										it->second->Held = false;
+									}
+									else
+									{
+										it->second->Clicked = false;
+										it->second->Held = false;
+									}
 								}
-								else
+								else if (it->second->ButtonShape == ButtonEdgeShape::RoundEdge)
 								{
-									it->second->Clicked = false;
-									it->second->Held = false;
+									if (it->second->Rect1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Rect2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Cir1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Cir2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Cir3.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Cir4.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+									{
+										if (it->second->Held)
+										{
+											std::cout << "Clicked!" << std::endl;
+											if (it->second->ClickHandler != NULL)
+												it->second->ClickHandler(this, it->second);
+										}
+										it->second->Clicked = false;
+										it->second->Held = false;
+									}
+									else
+									{
+										it->second->Clicked = false;
+										it->second->Held = false;
+									}
 								}
 							}
 						}
@@ -233,16 +539,38 @@ bool Window::Render()
 						{
 							if (it->second->Enabled)
 							{
-								if (it->second->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+								if (it->second->ButtonShape == ButtonEdgeShape::SquareEdge)
 								{
-									std::cout << "Held!" << std::endl;
-									if (it->second->HeldHandler != NULL)
-										it->second->HeldHandler(this, it->second);
-									it->second->Held = true;
+									if (it->second->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+									{
+										std::cout << "Held!" << std::endl;
+										if (it->second->HeldHandler != NULL)
+											it->second->HeldHandler(this, it->second);
+										it->second->Held = true;
+									}
+									else
+									{
+										it->second->Held = false;
+									}
 								}
-								else
+								else if (it->second->ButtonShape == ButtonEdgeShape::RoundEdge)
 								{
-									it->second->Held = false;
+									if (it->second->Rect1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Rect2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Cir1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Cir2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Cir3.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+										it->second->Cir4.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+									{
+										std::cout << "Held!" << std::endl;
+										if (it->second->HeldHandler != NULL)
+											it->second->HeldHandler(this, it->second);
+										it->second->Held = true;
+									}
+									else
+									{
+										it->second->Held = false;
+									}
 								}
 							}
 						}
@@ -263,15 +591,36 @@ bool Window::Render()
 							{
 								if (it->second->Enabled)
 								{
-									if (it->second->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+									if (it->second->ButtonShape == ButtonEdgeShape::SquareEdge)
 									{
-										std::cout << "Held!" << std::endl;
-										it->second->Clicked = true;
+										if (it->second->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+										{
+											std::cout << "Held!" << std::endl;
+											it->second->Clicked = true;
+										}
+										else
+										{
+											it->second->Clicked = false;
+										}
 									}
-									else
+									else if (it->second->ButtonShape == ButtonEdgeShape::RoundEdge)
 									{
-										it->second->Clicked = false;
+										if (it->second->Rect1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+											it->second->Rect2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+											it->second->Cir1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+											it->second->Cir2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+											it->second->Cir3.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+											it->second->Cir4.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+										{
+											std::cout << "Held!" << std::endl;
+											it->second->Clicked = true;
+										}
+										else
+										{
+											it->second->Clicked = false;
+										}
 									}
+									
 								}
 							}
 							else
@@ -283,71 +632,162 @@ bool Window::Render()
 				}
 			}
 		}
+		*/
+		MainWindow.clear(sf::Color(44, 62, 80));
 
-		MainWindow.clear();
-
-		std::map<std::string, Button*>::iterator it;
-		for (it = ButtonMap.begin(); it != ButtonMap.end(); it++)
+		for (auto it = DrawOrder.rbegin(); it != DrawOrder.rend(); ++it)
 		{
-			if (it->second != nullptr)
+			Object* mapObj = ObjectMap[*it];
+			if (mapObj != nullptr)
 			{
-				if (it->second->Enabled)
+				Button* obj = dynamic_cast<Button*>(mapObj);
+				if (obj)
 				{
-					if (it->second->Highlighted)
-						it->second->Shape.setFillColor(it->second->HighlightColor);
-					else
-						it->second->Shape.setFillColor(it->second->BackgroundColor);
-					if (it->second->Held)
+					if (obj->Enabled)
 					{
-						if (it->second->HeldHandler != NULL)
-							it->second->HeldHandler(this, it->second);
-					}
-					sf::Vector2f ff = it->second->Position;
-					if (it->second->Axis == LocationAxis::Center)
-					{
-						ff.x -= it->second->Size.x / 2;
-						ff.y -= it->second->Size.y / 2;
-					}
-					it->second->Shape.setPosition(ff);
-					it->second->Shape.setSize(it->second->Size);
-					if (it->second->TextLocation == TextLocation::Center)
-					{
-						sf::Vector2f pos = it->second->Position;
-						if (it->second->Axis == LocationAxis::TopLeft)
+						if (obj->Highlighted)
 						{
-							pos.x -= it->second->Size.x / 2;
-							pos.y -= it->second->Size.y / 2;
+							obj->Shape.setFillColor(obj->HighlightColor);
+							obj->Rect1.setFillColor(obj->HighlightColor);
+							obj->Rect2.setFillColor(obj->HighlightColor);
+							obj->Cir1.setFillColor(obj->HighlightColor);
+							obj->Cir2.setFillColor(obj->HighlightColor);
+							obj->Cir3.setFillColor(obj->HighlightColor);
+							obj->Cir4.setFillColor(obj->HighlightColor);
 						}
-						pos.y -= it->second->Text.getLocalBounds().height / 4;
-						it->second->Text.setOrigin(roundf(it->second->Text.getLocalBounds().width / 2), roundf(it->second->Text.getLocalBounds().height / 2));
-						it->second->Text.setPosition(roundf(pos.x), roundf(pos.y));
-						it->second->Text.setFillColor(it->second->TextColor);
+						else
+						{
+							obj->Shape.setFillColor(obj->BackgroundColor);
+							obj->Rect1.setFillColor(obj->BackgroundColor);
+							obj->Rect2.setFillColor(obj->BackgroundColor);
+							obj->Cir1.setFillColor(obj->BackgroundColor);
+							obj->Cir2.setFillColor(obj->BackgroundColor);
+							obj->Cir3.setFillColor(obj->BackgroundColor);
+							obj->Cir4.setFillColor(obj->BackgroundColor);
+						}
+						if (obj->Held)
+						{
+							if (obj->HeldHandler != NULL)
+								obj->HeldHandler(this, obj);
+						}
+						sf::Vector2f ff = obj->Position;
+						if (obj->Axis == LocationAxis::Center)
+						{
+							ff.x -= obj->Size.x / 2;
+							ff.y -= obj->Size.y / 2;
+						}
+						/*Needs to be tested more thoroughly*/
+						ff.x = ceilf(ff.x);
+						ff.y = floorf(ff.y);
+						/*----------------------------------*/
+						obj->Shape.setPosition(ff);
+						obj->Shape.setSize(obj->Size);
+						if (obj->TextLocation == TextLocation::Center)
+						{
+							sf::Vector2f pos = obj->Position;
+							if (obj->Axis == LocationAxis::TopLeft)
+							{
+								pos.x -= obj->Size.x / 2;
+								pos.y -= obj->Size.y / 2;
+							}
+							pos.y -= obj->Text.getLocalBounds().height / 4;
+							obj->Text.setOrigin(roundf(obj->Text.getLocalBounds().width / 2), roundf(obj->Text.getLocalBounds().height / 2));
+							obj->Text.setPosition(roundf(pos.x), roundf(pos.y));
+							obj->Text.setFillColor(obj->TextColor);
+						}
+
+						if (obj->ButtonShape == ButtonEdgeShape::SquareEdge)
+						{
+							MainWindow.draw(obj->Shape);
+						}
+						else if (obj->ButtonShape == ButtonEdgeShape::RoundEdge)
+						{
+							sf::Vector2f pos2 = ff;
+							//sf::RectangleShape sf1;
+							//obj->Rect1.setFillColor(sf::Color::Red);
+							obj->Rect1.setSize(sf::Vector2f(obj->Size.x - 20.0f, obj->Size.y));
+							pos2 = ff;
+							pos2.x += 10.0f;
+							obj->Rect1.setPosition(pos2);
+							MainWindow.draw(obj->Rect1);
+
+							//sf::RectangleShape sf2;
+							//obj->Rect2.setFillColor(sf::Color::Red);
+							obj->Rect2.setSize(sf::Vector2f(obj->Size.x, obj->Size.y - 20.0f));
+							pos2 = ff;
+							pos2.y += 10.0f;
+							obj->Rect2.setPosition(pos2);
+							MainWindow.draw(obj->Rect2);
+
+							//sf::CircleShape cir1;
+							obj->Cir1.setRadius(10.0f);
+							//obj->Cir1.setFillColor(sf::Color::Red);
+							//sf::CircleShape cir2;
+							obj->Cir2.setRadius(10.0f);
+							//obj->Cir2.setFillColor(sf::Color::Red);
+							//sf::CircleShape cir3;
+							obj->Cir3.setRadius(10.0f);
+							//obj->Cir3.setFillColor(sf::Color::Red);
+							//sf::CircleShape cir4;
+							obj->Cir4.setRadius(10.0f);
+							//obj->Cir4.setFillColor(sf::Color::Red);
+
+
+							pos2 = ff;
+							//pos2.x -= 10.0f;
+							//pos2.y -= 10.0f;
+							obj->Cir1.setPosition(pos2);
+							MainWindow.draw(obj->Cir1);
+
+							pos2 = ff;
+							pos2.x += obj->Size.x - 20.0f;
+							//pos2.y -= 10.0f;
+							obj->Cir2.setPosition(pos2);
+							MainWindow.draw(obj->Cir2);
+
+							pos2 = ff;
+							pos2.x += obj->Size.x - 20.0f;
+							pos2.y += obj->Size.y - 20.0f;
+							obj->Cir3.setPosition(pos2);
+							MainWindow.draw(obj->Cir3);
+
+							pos2 = ff;
+							//pos2.x -= 10.0f;
+							pos2.y += obj->Size.y - 20.0f;
+							obj->Cir4.setPosition(pos2);
+							MainWindow.draw(obj->Cir4);
+						}
+
+						MainWindow.draw(obj->Text);
 					}
-					MainWindow.draw(it->second->Shape);
-					MainWindow.draw(it->second->Text);
+				}
+				else
+				{
+					Image* img = dynamic_cast<Image*>(mapObj);
+					if (img)
+					{
+						sf::Vector2u curSize = img->Texture.getSize();
+						img->Sprite.setScale(img->Size.x / curSize.x, img->Size.y / curSize.y);
+						sf::Vector2f pos = img->Position;
+						if (img->Axis == LocationAxis::Center)
+						{
+							pos.x -= img->Size.x / 2;
+							pos.y -= img->Size.y / 2;
+						}
+						img->Sprite.setPosition(pos);
+						img->Sprite.setRotation(img->Rotation);
+						MainWindow.draw(img->Sprite);
+					}
 				}
 			}
 			else
 			{
-				ButtonMap.erase(it->first);
-			}
-		}
-		std::map<std::string, Image*>::iterator it2;
-		for (it2 = ImageMap.begin(); it2 != ImageMap.end(); it2++)
-		{
-			if (it2->second != nullptr)
-			{
-				sf::Vector2u curSize = it2->second->Texture.getSize();
-				it2->second->Sprite.setScale(it2->second->Size.x / curSize.x, it2->second->Size.y / curSize.y);
-				sf::Vector2f pos = it2->second->Position;
-				if (it2->second->Axis == LocationAxis::Center)
+				ObjectMap.erase(*it);
+				std::vector<std::string>::iterator pos = std::find(DrawOrder.begin(), DrawOrder.end(), *it);
+				if (pos != DrawOrder.end())
 				{
-					pos.x -= it2->second->Size.x / 2;
-					pos.y -= it2->second->Size.y / 2;
+					DrawOrder.erase(pos);
 				}
-				it2->second->Sprite.setPosition(pos);
-				it2->second->Sprite.setRotation(it2->second->Rotation);
-				MainWindow.draw(it2->second->Sprite);
 			}
 		}
 		MainWindow.setPosition(Position);
@@ -360,57 +800,69 @@ bool Window::Render()
 
 Button* Window::GetButtonById(std::string id)
 {
-	std::map<std::string, Button*>::iterator it = ButtonMap.find(id);
-	if (it != ButtonMap.end())
-		return it->second;
+	std::map<std::string, Object*>::iterator it = ObjectMap.find(id);
+	if (it != ObjectMap.end() && dynamic_cast<Button*>(it->second))
+		return dynamic_cast<Button*>(it->second);
 	return nullptr;
 }
 
 bool Window::DoesButtonExist(std::string id)
 {
-	std::map<std::string, Button*>::iterator it = ButtonMap.find(id);
-	if (it != ButtonMap.end())
+	std::map<std::string, Object*>::iterator it = ObjectMap.find(id);
+	if (it != ObjectMap.end() && dynamic_cast<Button*>(it->second))
 		return true;
 	return false;
 }
 
 Image* Window::GetImageById(std::string id)
 {
-	std::map<std::string, Image*>::iterator it = ImageMap.find(id);
-	if (it != ImageMap.end())
-		return it->second;
+	std::map<std::string, Object*>::iterator it = ObjectMap.find(id);
+	if (it != ObjectMap.end() && dynamic_cast<Image*>(it->second))
+		return dynamic_cast<Image*>(it->second);
 	return nullptr;
 }
 
 bool Window::DoesImageExist(std::string id)
 {
-	std::map<std::string, Image*>::iterator it = ImageMap.find(id);
-	if (it != ImageMap.end())
+	std::map<std::string, Object*>::iterator it = ObjectMap.find(id);
+	if (it != ObjectMap.end() && dynamic_cast<Image*>(it->second))
 		return true;
 	return false;
 }
 
 Button* Window::CreateButton(std::string id, float x, float y, float width, float height, void(*f)(Window*, Button*))
 {
-	if (ButtonMap.find(id) == ButtonMap.end())
+	if (ObjectMap.find(id) == ObjectMap.end())
 	{
-		Button* button = new Button(x, y, width, height);
+		Button* button = new Button(x, y, width, height, this, id);
 		button->ClickHandler = f;
-		ButtonMap.insert(std::pair<std::string, Button*>(id, button));
+		ObjectMap.insert(ObjectMap.begin(), std::pair<std::string, Button*>(id, button));
+		DrawOrder.insert(DrawOrder.begin(), id);
 		return button;
 	}
-	return ButtonMap.find(id)->second;
+	Object* obj = ObjectMap.find(id)->second;
+	Button* btn = dynamic_cast<Button*>(obj);
+	if (btn != nullptr)
+		return btn;
+	else
+		return nullptr;
 }
 
 Image* Window::CreateImage(std::string id, std::string image, float x, float y, float width, float height)
 {
-	if (ImageMap.find(id) == ImageMap.end())
+	if (ObjectMap.find(id) == ObjectMap.end())
 	{
-		Image* img = new Image(image, x, y, width, height);
-		ImageMap.insert(std::pair<std::string, Image*>(id, img));
+		Image* img = new Image(image, x, y, width, height, this, id);
+		ObjectMap.insert(ObjectMap.begin(), std::pair<std::string, Image*>(id, img));
+		DrawOrder.insert(DrawOrder.begin(), id);
 		return img;
 	}
-	return ImageMap.find(id)->second;
+	Object* obj = ObjectMap.find(id)->second;
+	Image* im = dynamic_cast<Image*>(obj);
+	if (im != nullptr)
+		return im;
+	else
+		return nullptr;
 }
 
 void Window::CenterHorizontally()
