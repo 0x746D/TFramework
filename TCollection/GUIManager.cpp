@@ -1,4 +1,6 @@
 #include "GUIManager.h"
+#include "ConsoleManager.h"
+#include "Utilities.h"
 
 Button::Button(float x, float y, float width, float height, Window* parent, std::string id)
 {
@@ -19,9 +21,9 @@ Button::Button(float x, float y, float width, float height, Window* parent, std:
 	Text.setFillColor(sf::Color::White);
 	Highlighted = false;
 	TextLocation = TextLocation::Center;
-	ClickHandler = NULL;
-	HeldHandler = NULL;
-	RightClickHandler = NULL;
+	ClickHandler = nullptr;
+	HeldHandler = nullptr;
+	RightClickHandler = nullptr;
 	Held = false;
 	Axis = LocationAxis::Center;
 	ButtonShape = ButtonEdgeShape::SquareEdge;
@@ -380,6 +382,184 @@ bool Window::Render()
 			{
 				MainWindow.close();
 			}
+			else if (event.type == sf::Event::Resized)
+			{
+				MainWindow.setView(sf::View(sf::FloatRect(0, 0, (float)event.size.width, (float)event.size.height)));
+			}
+			else if (event.type == sf::Event::MouseMoved)
+			{
+
+			}
+			else if (event.type == sf::Event::MouseButtonPressed)
+			{
+				std::map<std::string, Object*>::iterator it;
+				Button* btnPress = nullptr;
+				Image* img = nullptr;
+
+				for (it = ObjectMap.begin(); it != ObjectMap.end(); it++)
+				{
+					Button* btn = dynamic_cast<Button*>(it->second);
+					if (btn != nullptr)
+					{
+						if (btn->ButtonShape == ButtonEdgeShape::SquareEdge)
+						{
+							if (btn->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+							{
+								if (btnPress == nullptr)
+								{
+									btnPress = btn;
+									std::cout << "Held!" << std::endl;
+								}
+								if (btn->ZIndex < btnPress->ZIndex)
+								{
+									std::cout << "Held!" << std::endl;
+									btnPress = btn;
+								}
+							}
+							btn->Held = false;
+						}
+						else if (btn->ButtonShape == ButtonEdgeShape::RoundEdge)
+						{
+							if (btn->Rect1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Rect2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Cir1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Cir2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Cir3.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Cir4.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+							{
+								if (btnPress == nullptr)
+								{
+									btnPress = btn;
+									std::cout << "Held!" << std::endl;
+								}
+								if (btn->ZIndex < btnPress->ZIndex)
+								{
+									std::cout << "Held!" << std::endl;
+									btnPress = btn;
+								}
+							}
+							btn->Held = false;
+						}
+					}
+					else
+					{
+						img = dynamic_cast<Image*>(it->second);
+						if (img != nullptr)
+						{
+
+						}
+						else
+						{
+
+						}
+					}
+				}
+
+				if (event.mouseButton.button == sf::Mouse::Left)
+				{
+					if (btnPress != nullptr)
+					{
+						if (btnPress->HeldHandler != nullptr)
+							btnPress->HeldHandler(this, btnPress);
+						btnPress->Held = true;
+						Console::WriteLine(S("Left Press: ") + btnPress->Id);
+					}
+				}
+				else if (event.mouseButton.button == sf::Mouse::Right)
+				{
+					Console::WriteLine("Right Press");
+				}
+			}
+			else if (event.type == sf::Event::MouseButtonReleased)
+			{
+				std::map<std::string, Object*>::iterator it;
+				Button* btnRel = nullptr;
+				Image* img = nullptr;
+
+				for (it = ObjectMap.begin(); it != ObjectMap.end(); it++)
+				{
+					Button* btn = dynamic_cast<Button*>(it->second);
+					if (btn != nullptr)
+					{
+						if (btn->ButtonShape == ButtonEdgeShape::SquareEdge)
+						{
+							if (btn->Shape.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+							{
+								if (btnRel == nullptr)
+									btnRel = btn;
+								if (btn->ZIndex < btnRel->ZIndex)
+								{
+									btnRel = btn;
+								}
+							}
+							else
+							{
+								btn->Held = false;
+							}
+						}
+						else if (btn->ButtonShape == ButtonEdgeShape::RoundEdge)
+						{
+							if (btn->Rect1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Rect2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Cir1.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Cir2.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Cir3.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))) ||
+								btn->Cir4.getGlobalBounds().contains(MainWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y))))
+							{
+								if (btnRel == nullptr)
+									btnRel = btn;
+								if (btn->ZIndex < btnRel->ZIndex)
+								{
+									btnRel = btn;
+								}
+							}
+							else
+							{
+								btn->Held = false;
+							}
+						}
+					}
+					else
+					{
+						img = dynamic_cast<Image*>(it->second);
+						if (img != nullptr)
+						{
+
+						}
+						else
+						{
+
+						}
+					}
+				}
+
+				if (event.mouseButton.button == sf::Mouse::Left)
+				{
+					if (btnRel != nullptr)
+					{
+						if (btnRel->Held)
+						{
+							std::cout << "Clicked!" << std::endl;
+							if (btnRel->ClickHandler != nullptr)
+								btnRel->ClickHandler(this, btnRel);
+							btnRel->Held = false;
+						}
+						Console::WriteLine(S("Left Release: ") + btnRel->Id);
+					}
+				}
+				else if (event.mouseButton.button == sf::Mouse::Right)
+				{
+					Console::WriteLine("Right Release");
+				}
+			}
+			else if (event.type == sf::Event::LostFocus)
+			{
+				std::cout << "Lost Focus" << std::endl;
+			}
+			else if (event.type == sf::Event::GainedFocus)
+			{
+				std::cout << "Gained Focus" << std::endl;
+			}
 		}
 		/*while (MainWindow.pollEvent(event))
 		{
@@ -667,7 +847,7 @@ bool Window::Render()
 						}
 						if (obj->Held)
 						{
-							if (obj->HeldHandler != NULL)
+							if (obj->HeldHandler != nullptr)
 								obj->HeldHandler(this, obj);
 						}
 						sf::Vector2f ff = obj->Position;

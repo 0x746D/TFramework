@@ -23,7 +23,8 @@ int main()
 
 	window->CreateImage("test", "art1.jpeg", 150, 150, 250, 250)->SetZIndex(1);
 	window->CreateButton("Backdrop", 150 + 5, 150 + 5, 250, 250)->SetBackgroundColor(CLR_BLACK)->SetButtonShape(ButtonEdgeShape::SquareEdge)->SetHighlightColor(CLR_BLACK)->SetZIndex(2);
-	window->CreateButton("Play", 150, 295, 125, 25)->SetBackgroundColor(149, 165, 166)->SetButtonShape(ButtonEdgeShape::RoundEdge)->SetText("Play")->SetZIndex(0);
+	window->CreateButton("Play", 150, 295, 125, 25)->SetBackgroundColor(149, 165, 166)->SetButtonShape(ButtonEdgeShape::RoundEdge)->SetText("Play")->SetZIndex(1);
+	window->CreateButton("Play2", 150, 295, 75, 25)->SetBackgroundColor(255, 0, 0)->SetButtonShape(ButtonEdgeShape::RoundEdge)->SetText("Play2")->SetZIndex(0);
 	window->CreateButton("Prev", 50, 295, 50, 25)->SetBackgroundColor(149, 165, 166)->SetButtonShape(ButtonEdgeShape::RoundEdge)->SetText("Prev")->SetZIndex(0);
 	window->CreateButton("Next", 250, 295, 50, 25)->SetBackgroundColor(149, 165, 166)->SetButtonShape(ButtonEdgeShape::RoundEdge)->SetText("Next")->SetZIndex(0);
 	window->CreateButton("Loop", 250 + (25 / 2), 275 - (25 / 2), 25, 25)->SetBackgroundColor(CLR_RED)->SetButtonShape(ButtonEdgeShape::RoundEdge)->SetText("O")->SetZIndex(0);
